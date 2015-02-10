@@ -5,6 +5,7 @@ set -o errexit
 urls=(
   https://github.com/rails/rails/tree/master/Gemfile
   http://www.google.com
+  https://pudding-production.herokuapp.com
 )
 
 for url in ${urls[@]} ; do
