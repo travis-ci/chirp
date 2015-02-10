@@ -3,7 +3,7 @@
 set -o errexit
 
 urls=(
-  https://github.com/rails/rails
+  https://github.com/rails/rails/tree/master/Gemfile
   http://www.google.com
 )
 
