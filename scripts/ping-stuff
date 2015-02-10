@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+urls=(
+  https://github.com/rails/rails
+  http://www.google.com
+)
+
+for url in ${urls[@]} ; do
+  curl -fsSL "$url"
+done

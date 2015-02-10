@@ -1,8 +1,4 @@
 language: ruby
-rvm:
-- jruby
-- default
-script: for n in `seq 0 100` ; do ruby mandelbrot.rb ; done
 notifications:
   webhooks:
     urls:

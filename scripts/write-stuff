@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+for i in $(seq 0 1000) ; do
+  dd if=/dev/zero of=./.write-test count=1024 bs=256 &>/dev/null
+  rm -f ./.write-test
+done
