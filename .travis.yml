@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+- jruby
+- default
+script: for n in `seq 0 100` ; do ruby mandelbrot.rb ; done
+notifications:
+  webhooks:
+    urls:
+    - https://chirp-tracker-production.herokuapp.com/travis
+    on_success: always
+    on_failure: never
