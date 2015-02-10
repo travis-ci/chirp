@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+mbheaps=(
+  1
+  10
+  100
+  1000
+)
+
+: ${SCRATCH:=${TMPDIR:-/var/tmp}/chirp-memory}
+
+mkdir -p "${SCRATCH}"
+pushd "${SCRATCH}" &>/dev/null
+
+for mbheap in ${mbheaps[@]} ; do
+  cat > "mbheap${mbheap}.c" <<EOF
+#include <stdlib.h>
+#include <stdio.h>
+
+#define ONEMB 1048576
+
+int main() {
+    int *p = malloc(sizeof(int) * ONEMB * ${mbheap});
+
+    int n;
+
+    printf("allocating ${mbheap}MB\n");
+    for (n = 0; n < ONEMB; n++) {
+        p[n] = n;
+    }
+
+    free(p);
+    return 0;
+}
+EOF
+  ${CC:-gcc} -o a.out "mbheap${mbheap}.c"
+  ./a.out
+  rm -f ./a.out "mbheap${mbheap}.c"
+done

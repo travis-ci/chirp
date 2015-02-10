@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+ips=(
+  8.8.8.8
+  8.8.4.4
+  127.0.0.1
+)
+
+for ip in ${ips[@]} ; do
+  ping -q -c 1 "${ip}" &>/dev/null
+done

@@ -4,7 +4,7 @@ class Chirp
     Dir.glob(scripts) do |script|
       if File.executable?(script)
         $stdout.puts "---> #{script.inspect}"
-        children << fork { %x{#{script}} }
+        children << fork { %x{#{script} &>/dev/null} }
       end
     end
     children.map { |pid| Process.waitpid(pid) }
