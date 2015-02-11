@@ -9,5 +9,5 @@ ips=(
 )
 
 for ip in ${ips[@]} ; do
-  ping -q -c 1 "${ip}" &>/dev/null
+  ping -c 1 "${ip}"
 done

@@ -12,7 +12,7 @@ mbheaps=(
 : ${SCRATCH:=${TMPDIR:-/var/tmp}/chirp-memory}
 
 mkdir -p "${SCRATCH}"
-pushd "${SCRATCH}" &>/dev/null
+pushd "${SCRATCH}"
 
 for mbheap in ${mbheaps[@]} ; do
   cat > "mbheap${mbheap}.c" <<EOF

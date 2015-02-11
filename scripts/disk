@@ -5,9 +5,9 @@ set -o errexit
 : ${SCRATCH:=${TMPDIR:-/var/tmp}/chirp-disk}
 
 mkdir -p "${SCRATCH}"
-pushd "${SCRATCH}" &>/dev/null
+pushd "${SCRATCH}"
 
 for i in $(seq 0 1000) ; do
-  dd if=/dev/zero of=./.write-test count=1024 bs=256 &>/dev/null
-  rm -f ./.write-test
+  dd if=/dev/zero of=./.write-test count=1024 bs=256
+  rm -vf ./.write-test
 done

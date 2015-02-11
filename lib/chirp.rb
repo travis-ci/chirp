@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class Chirp
   Child = Struct.new(:script, :exitstatus)
 
@@ -9,12 +11,16 @@ class Chirp
   def run!
     started = {}
     completed = []
-    start_dots
+
+    FileUtils.mkdir_p(logs_dir)
+
+    start_dots if ENV.key?('CI')
 
     scripts.each do |script|
       if File.executable?(script)
+        logfile = File.join(logs_dir, "#{File.basename(script)}.log")
         $stdout.puts "---> Spawning #{script.inspect}"
-        pid = Process.spawn(script)
+        pid = Process.spawn(script, [:out, :err] => [logfile, 'w'])
         started[pid] = Child.new(script, 0)
       end
     end
@@ -45,6 +51,10 @@ class Chirp
 
   def scripts_dir
     @scripts_dir ||= ENV.fetch('CHIRP_SCRIPTS', File.expand_path('../../scripts', __FILE__))
+  end
+
+  def logs_dir
+    @logs_dir ||= ENV.fetch('CHIRP_LOGS', File.expand_path('../../log', __FILE__))
   end
 
   def script_filter
