@@ -11,19 +11,18 @@ class Chirp
   def run!
     started = {}
     completed = []
-
     FileUtils.mkdir_p(logs_dir)
-
-    start_dots if ENV.key?('CI')
 
     scripts.each do |script|
       if File.executable?(script)
         logfile = File.join(logs_dir, "#{File.basename(script)}.log")
-        $stdout.puts "---> Spawning #{script.inspect}"
+        $stdout.puts "* ---> Spawning #{script.inspect}"
         pid = Process.spawn(script, [:out, :err] => [logfile, 'w'])
         started[pid] = Child.new(script, 0)
       end
     end
+
+    print_forever
 
     loop do
       break if started.empty?
@@ -40,6 +39,7 @@ class Chirp
       sleep 0.2
     end
 
+    $stdout.puts "---> ALL DONE!"
     completed.map(&:exitstatus).reduce(:+)
   end
 
@@ -61,11 +61,14 @@ class Chirp
     @script_filter ||= %r{#{ENV['CHIRP_SCRIPT_FILTER'] || '.*'}}
   end
 
-  def start_dots
+  def print_forever
     Thread.start do
       loop do
-        $stderr.write '.'
-        sleep 0.5
+        %w(◴ ◷ ◶ ◵).each do |chr|
+          $stderr.write "\r  "
+          $stderr.write "\r#{chr} "
+          sleep 0.1
+        end
       end
     end
   end
