@@ -1,38 +1,54 @@
 class Chirp
+  Child = Struct.new(:script, :exitstatus)
+
   def initialize
     $stdout.sync = true
     $stderr.sync = true
   end
 
   def run!
-    children = {}
+    started = {}
+    completed = []
     start_dots
 
-    Dir.glob(scripts) do |script|
+    scripts.each do |script|
       if File.executable?(script)
-        $stdout.puts "---> #{script.inspect}"
-        pid = fork { system script }
-        children[pid] = File.basename(script)
+        $stdout.puts "---> Spawning #{script.inspect}"
+        pid = Process.spawn(script)
+        started[pid] = Child.new(script, 0)
       end
     end
 
     loop do
-      break if children.empty?
+      break if started.empty?
 
-      children.clone.map do |pid, basename|
-        children.delete(pid) if Process.waitpid(pid, Process::WNOHANG)
+      started.clone.map do |pid, child|
+        if Process.waitpid(pid, Process::WNOHANG)
+          child = started.delete(pid)
+          child.exitstatus = $?.exitstatus
+          $stdout.puts "---> Done with #{child.script.inspect}, exit #{child.exitstatus}"
+          completed << child
+        end
       end
 
       sleep 0.2
     end
+
+    completed.map(&:exitstatus).reduce(:+)
   end
 
   def scripts
-    @scripts ||= File.expand_path("#{scripts_dir}/*")
+    @scripts ||= Dir.glob(File.expand_path("#{scripts_dir}/*")).select do |script|
+      script_filter =~ script
+    end
   end
 
   def scripts_dir
     @scripts_dir ||= ENV.fetch('CHIRP_SCRIPTS', File.expand_path('../../scripts', __FILE__))
+  end
+
+  def script_filter
+    @script_filter ||= %r{#{ENV['CHIRP_SCRIPT_FILTER'] || '.*'}}
   end
 
   def start_dots

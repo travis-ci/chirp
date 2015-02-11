@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -o errexit
+
+[[ ${GITHUB_OAUTH_TOKEN} ]] || { echo "Missing \$GITHUB_OAUTH_TOKEN" ; exit 1 ; }
+[[ ${TRAVIS_REPO_SLUG} ]] || { echo "Missing \$TRAVIS_REPO_SLUG" ; exit 1 ; }
+
+git pull --rebase origin master
+git commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT}
+
+Travis-Build-ID: ${TRAVIS_BUILD_ID}
+Travis-Job-ID: ${TRAVIS_JOB_ID}
+Travis-Commit: ${TRAVIS_COMMIT}
+"
+
+git remote set-url origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
+git push origin master

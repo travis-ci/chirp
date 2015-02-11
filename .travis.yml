@@ -1,7 +1,16 @@
 language: ruby
+rvm: 2.2.0
+sudo: false
+cache:
+  apt: true
+addons:
+  apt_packages:
+  - bc
+script: ./bin/chirp
+after_success: ./bin/pushback
 notifications:
   webhooks:
     urls:
-    - https://chirp-tracker-production.herokuapp.com/travis
+    - 'https://chirp-tracker-production.herokuapp.com/travis'
     on_success: always
     on_failure: never
