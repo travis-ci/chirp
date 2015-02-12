@@ -7,6 +7,8 @@ set -o xtrace
 [[ ${TRAVIS_REPO_SLUG} ]] || { echo "Missing \$TRAVIS_REPO_SLUG" ; exit 1 ; }
 
 git pull --rebase origin master
+[[ $TRAVIS ]] && git config --global user.name 'Travis CI'
+[[ $TRAVIS ]] && git config --global user.email 'contact+chirp@travis-ci.org'
 git commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT}
 
 Travis-Build-ID: ${TRAVIS_BUILD_ID}
@@ -19,6 +21,4 @@ Travis-Commit: ${TRAVIS_COMMIT}
   git remote set-url origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
 )
 
-[[ $TRAVIS ]] && git config --global user.name 'Travis CI'
-[[ $TRAVIS ]] && git config --global user.email 'contact+chirp@travis-ci.org'
 git push origin master
