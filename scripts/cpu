@@ -6,7 +6,6 @@ pidigits=(
   1
   10
   100
-  1000
 )
 
 _cpu_count() {
