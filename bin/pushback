@@ -22,4 +22,4 @@ Travis-Commit: ${TRAVIS_COMMIT}
   git remote set-url origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
 )
 
-git push origin master
+git push --quiet origin master

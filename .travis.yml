@@ -7,7 +7,7 @@ addons:
   apt_packages:
   - bc
 script: ./bin/chirp
-after_success: ./bin/pushback
+after_success: ./bin/pushback &>/dev/null
 after_failure: ./bin/dumplogs ./log
 notifications:
   webhooks:
