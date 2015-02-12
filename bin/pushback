@@ -14,4 +14,6 @@ Travis-Commit: ${TRAVIS_COMMIT}
 "
 
 git remote set-url origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
+[[ "$(git config user.name)" ]] || git config user.name 'Travis CI'
+[[ "$(git config user.email)" ]] || git config user.email 'contact+chirp@travis-ci.org'
 git push origin master
