@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'chirp/runner'
+exit Chirp::Runner.new.run!

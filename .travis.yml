@@ -6,7 +6,7 @@ cache:
 addons:
   apt_packages:
   - bc
-script: ./bin/chirp
+script: bundle exec chirp
 after_success: ./bin/pushback &>/dev/null
 after_failure: ./bin/dumplogs ./log
 notifications:
