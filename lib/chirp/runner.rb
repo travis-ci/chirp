@@ -4,15 +4,30 @@ module Chirp
   class Runner
     Child = Struct.new(:script, :exitstatus)
 
-    attr_reader :args
+    attr_reader :args, :action
 
     def initialize(args = ARGV.clone)
       @args = args
+      @action = args.first || 'scripts'
       $stdout.sync = true
       $stderr.sync = true
     end
 
     def run!
+      send("perform_#{action}")
+    end
+
+    private
+
+    def perform_pushback
+      Process.exec(internal_script('pushback'))
+    end
+
+    def perform_dumplogs
+      Process.exec(internal_script('dumplogs'), logs_dir)
+    end
+
+    def perform_scripts
       started = {}
       completed = []
       FileUtils.mkdir_p(logs_dir)
@@ -58,6 +73,14 @@ module Chirp
         'CHIRP_SCRIPTS',
         args.first || File.expand_path('../scripts', __FILE__)
       )
+    end
+
+    def internal_script(basename)
+      File.join(internal_scripts_dir, basename)
+    end
+
+    def internal_scripts_dir
+      @internal_scripts_dir ||= File.expand_path('../internal-scripts', __FILE__)
     end
 
     def logs_dir
