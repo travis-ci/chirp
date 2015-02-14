@@ -4,10 +4,9 @@ module Chirp
   class Runner
     Child = Struct.new(:script, :exitstatus)
 
-    attr_reader :args, :action
+    attr_reader :action
 
     def initialize(args = ARGV.clone)
-      @args = args
       @action = args.first || 'scripts'
       $stdout.sync = true
       $stderr.sync = true
@@ -71,7 +70,7 @@ module Chirp
     def scripts_dir
       @scripts_dir ||= ENV.fetch(
         'CHIRP_SCRIPTS',
-        args.first || File.expand_path('../scripts', __FILE__)
+        File.expand_path('../scripts', __FILE__)
       )
     end
 
