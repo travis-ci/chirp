@@ -18,6 +18,7 @@ ${CHIRP_GIT_EXE} commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT
 Travis-Build-ID: ${TRAVIS_BUILD_ID}
 Travis-Job-ID: ${TRAVIS_JOB_ID}
 Travis-Commit: ${TRAVIS_COMMIT}
+Travis-Branch: ${TRAVIS_BRANCH}
 "
 
 (
