@@ -9,7 +9,7 @@ as a simple metric for high level alerts.
 
 0. Add this gem as a dependency in a `Gemfile`, e.g. `gem 'chirp', github: 'travis-infrastructure/chirp'`
 0. Add a `.travis.yml` with required bits
-    * Ensure it is `language: ruby`
+    * Ensure it is `language: ruby` or at least uses a language with `bundler` available
     * Ensure the `script` step includes `bundle exec chirp scripts`
     * Ensure the `after_success` step includes `bundle exec chirp pushback &>/dev/null`
     * Optionally, add an `after_failure` step with `bundle exec chirp dumplogs`
