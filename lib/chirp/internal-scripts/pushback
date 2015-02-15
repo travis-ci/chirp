@@ -9,8 +9,8 @@ set -o xtrace
 
 : ${CHIRP_GIT_EXE:=git}
 
-${CHIRP_GIT_EXE} checkout master
-${CHIRP_GIT_EXE} pull --rebase origin master
+${CHIRP_GIT_EXE} checkout "${TRAVIS_BRANCH}"
+${CHIRP_GIT_EXE} pull --rebase origin "${TRAVIS_BRANCH}"
 [[ $TRAVIS ]] && ${CHIRP_GIT_EXE} config --global user.name 'Travis CI'
 [[ $TRAVIS ]] && ${CHIRP_GIT_EXE} config --global user.email 'contact+chirp@travis-ci.org'
 ${CHIRP_GIT_EXE} commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT}
@@ -26,4 +26,4 @@ Travis-Commit: ${TRAVIS_COMMIT}
     origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
 )
 
-${CHIRP_GIT_EXE} push --quiet origin master
+${CHIRP_GIT_EXE} push --quiet origin "${TRAVIS_BRANCH}"
