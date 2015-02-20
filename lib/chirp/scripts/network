@@ -2,12 +2,22 @@
 
 set -o errexit
 
-urls=(
-  https://github.com/rails/rails/tree/master/Gemfile
-  http://www.google.com
-  https://pudding-production.herokuapp.com
-)
+if [[ ! $CHIRP_NETWORK_URLS ]] ; then
+  CHIRP_NETWORK_URLS="
+    http://developer.android.com/tools/sdk/ndk/index.html
+    http://us.archive.ubuntu.com/ubuntu/dists/precise/main/binary-amd64/
+    http://www.google.com
+    https://github.com/rails/rails/tree/master/Gemfile
+    https://pudding-production.herokuapp.com
+    https://s3.amazonaws.com/travis-build-examples/index.html
+    https://travis-ci.org/travis-infrastructure/chirp
+  "
+fi
 
-for url in ${urls[@]} ; do
-  curl -fsSL "$url"
+URLS=( ${CHIRP_NETWORK_URLS} )
+
+for url in ${URLS[@]} ; do
+  curl -fsSL "$url" &
 done
+
+wait

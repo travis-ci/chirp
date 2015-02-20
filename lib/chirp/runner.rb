@@ -68,10 +68,13 @@ module Chirp
     end
 
     def scripts_dir
-      @scripts_dir ||= ENV.fetch(
+      return @scripts_dir if @scripts_dir
+      @scripts_dir = ENV.fetch(
         'CHIRP_SCRIPTS',
         File.expand_path('../scripts', __FILE__)
       )
+      ENV['CHIRP_SCRIPTS'] = @scripts_dir
+      @scripts_dir
     end
 
     def internal_script(basename)

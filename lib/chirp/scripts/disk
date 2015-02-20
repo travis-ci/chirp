@@ -2,12 +2,13 @@
 
 set -o errexit
 
-: ${SCRATCH:=${TMPDIR:-/var/tmp}/chirp-disk}
+: ${CHIRP_SCRATCH:=${TMPDIR:-/var/tmp}/chirp-disk}
+: ${CHIRP_DISK_WRITES:=10000}
 
-mkdir -p "${SCRATCH}"
-pushd "${SCRATCH}"
+mkdir -p "${CHIRP_SCRATCH}"
+pushd "${CHIRP_SCRATCH}"
 
-for i in $(seq 0 1000) ; do
+for i in $(seq 0 ${CHIRP_DISK_WRITES}) ; do
   dd if=/dev/zero of=./.write-test count=1024 bs=256
   rm -vf ./.write-test
 done

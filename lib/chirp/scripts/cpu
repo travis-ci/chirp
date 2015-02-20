@@ -2,22 +2,19 @@
 
 set -o errexit
 
-pidigits=(
-  1
-  10
-  100
-)
+: ${CHIRP_CPU_DIGITS:=1 10 100 1000}
+DIGITS=( ${CHIRP_CPU_DIGITS} )
 
 _cpu_count() {
   python -c 'import multiprocessing;print multiprocessing.cpu_count()'
 }
 
-for pidigit in ${pidigits[@]} ; do
+for digit in ${DIGITS[@]} ; do
   for cpu in $(seq 1 $(_cpu_count)) ; do
     (
       TMPSCRIPT="$(mktemp /tmp/chirp-cpu.XXXXXX)"
       trap "rm -f ${TMPSCRIPT}" EXIT QUIT TERM
-      echo -n "scale=${pidigit}; (" >> "${TMPSCRIPT}"
+      echo -n "scale=${digit}; (" >> "${TMPSCRIPT}"
       seq 1 2 100 | xargs -n1 -I{} echo '(16*(1/5)^{}/{}-4*(1/239)^{}/{}) + \' >> "${TMPSCRIPT}"
       echo '0.0 )' >> "${TMPSCRIPT}"
       bc -l "${TMPSCRIPT}"
