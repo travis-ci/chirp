@@ -20,7 +20,9 @@ script:
 - bundle exec rspec spec
 - if [[ -n $INTEGRATION_SPECS ]] ; then bundle exec chirp ; fi
 
-after_success: bundle exec chirp pushback
+after_success:
+- bundle exec chirp pushback
+- bundle exec chirp sendstats
 
 after_failure: bundle exec chirp dumplogs ./log
 

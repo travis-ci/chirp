@@ -3,12 +3,22 @@
 set -o errexit
 set -o xtrace
 
-[[ ${CHIRP_PUSHBACK_DISABLED} ]] && { echo "Disabled!" ; exit 0 ; }
-[[ ${GITHUB_OAUTH_TOKEN} ]] || { echo "Missing \$GITHUB_OAUTH_TOKEN" ; exit 1 ; }
-[[ ${TRAVIS_REPO_SLUG} ]] || { echo "Missing \$TRAVIS_REPO_SLUG" ; exit 1 ; }
+[[ ${CHIRP_PUSHBACK_DISABLED} ]] && {
+  echo "Disabled!"
+  exit 0
+}
+
+[[ ${GITHUB_OAUTH_TOKEN} ]] || {
+  echo "Missing \$GITHUB_OAUTH_TOKEN"
+  exit 1
+}
+
+[[ ${TRAVIS_REPO_SLUG} ]] || {
+  echo "Missing \$TRAVIS_REPO_SLUG"
+  exit 1
+}
 
 : ${CHIRP_GIT_EXE:=git}
-: ${CHIRP_CURL_EXE:=curl}
 
 ${CHIRP_GIT_EXE} checkout "${TRAVIS_BRANCH}"
 ${CHIRP_GIT_EXE} pull --rebase origin "${TRAVIS_BRANCH}"
@@ -29,10 +39,3 @@ Travis-Branch: ${TRAVIS_BRANCH}
 )
 
 ${CHIRP_GIT_EXE} push --quiet origin "${TRAVIS_BRANCH}"
-
-if [[ -n $CHIRP_TRACKER_STATS_URL && -f ${CHIRP_SUMMARY_OUTPUT} ]] ; then
-  ${CHIRP_CURL_EXE} -sSL \
-    --data-binary @${CHIRP_SUMMARY_OUTPUT} \
-    -H 'Content-Type: application/json' \
-    ${CHIRP_TRACKER_STATS_URL}
-fi
