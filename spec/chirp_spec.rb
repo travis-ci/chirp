@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 describe Chirp do
   it 'has a Runner' do
     expect(Chirp::Runner).to_not be_nil
