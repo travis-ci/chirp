@@ -10,10 +10,17 @@ addons:
   apt_packages:
   - bc
 
+env:
+  matrix:
+  - INTEGRATION_SPECS=1
+  - NO_INTEGRAITON_SPECS=1
+
 script:
 - bundle exec rubocop
 - bundle exec rspec spec
 - bundle exec chirp
+
+after_success: bundle exec chirp pushback
 
 after_failure: bundle exec chirp dumplogs ./log
 
