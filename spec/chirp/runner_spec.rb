@@ -29,8 +29,12 @@ describe Chirp::Runner do
     %w(cpu disk memory network).each do |script_name|
       it "runs a #{script_name} script" do
         subject.run!
-        expect($stdout.string).to match(/Spawning.*scripts\/#{script_name}"$/)
-        expect($stdout.string).to match(/---> #{script_name} [\d\.]+s \(exit 0\)$/)
+        expect($stdout.string).to match(
+          %r{Spawning.*scripts\/#{script_name}"$}
+        )
+        expect($stdout.string).to match(
+          /---> #{script_name} [\d\.]+s \(exit 0\)$/
+        )
       end
     end
   end
