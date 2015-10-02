@@ -13,7 +13,7 @@ addons:
 env:
   matrix:
   - INTEGRATION_SPECS=1
-  - NO_INTEGRAITON_SPECS=1
+  - NO_INTEGRATION_SPECS=1
 
 script:
 - bundle exec rubocop
