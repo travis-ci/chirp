@@ -12,12 +12,15 @@ Gem::Specification.new do |spec|
     spec.metadata['allowed_push_host'] = 'http://example.org/nope/nope/nope'
   end
 
-  spec.summary = %q{Canary thing}
-  spec.description = %q{Canary thing with flair!}
+  spec.summary = 'Canary thing'
+  spec.description = 'Canary thing with flair!'
   spec.homepage = 'https://github.com/travis-infrastructure/chirp'
   spec.license = 'MIT'
 
-  spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files = `git ls-files -z`.split("\x0").reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
+
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']

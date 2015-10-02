@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 set -o xtrace
@@ -28,3 +28,10 @@ Travis-Branch: ${TRAVIS_BRANCH}
 )
 
 ${CHIRP_GIT_EXE} push --quiet origin "${TRAVIS_BRANCH}"
+
+if [[ -n $CHIRP_TRACKER_STATS_URL && -f ${CHIRP_SUMMARY_OUTPUT} ]] ; then
+  curl -sSL \
+    -d @${CHIRP_SUMMARY_OUTPUT} \
+    -H 'Content-Type: application/json' \
+    ${CHIRP_TRACKER_STATS_URL}
+fi
