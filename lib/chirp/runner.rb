@@ -139,7 +139,7 @@ module Chirp
       end
 
       sum_recs.each do |rec|
-        $stdout.puts "* ---> #{rec[:script]} #{rec[:exe_time]}s " \
+        $stdout.puts "* ---> #{rec[:script]} #{rec[:exe_time]} " \
                      "(exit #{rec[:exit]})"
       end
 
