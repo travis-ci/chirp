@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 module Chirp
   class Runner
     Child = Struct.new(

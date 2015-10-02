@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 describe Chirp::Runner do
   subject { described_class.new(%w(whatever)) }
 
