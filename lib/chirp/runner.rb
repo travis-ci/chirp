@@ -1,8 +1,10 @@
+require 'English'
 require 'fileutils'
+require 'json'
 
 module Chirp
   class Runner
-    Child = Struct.new(:script, :exitstatus)
+    autoload :Child, 'chirp/runner/child'
 
     attr_reader :action
 
@@ -28,16 +30,17 @@ module Chirp
 
     def perform_scripts
       started = {}
-      completed = []
+      completed = {}
       FileUtils.mkdir_p(logs_dir)
 
       scripts.each do |script|
-        if File.executable?(script)
-          logfile = File.join(logs_dir, "#{File.basename(script)}.log")
-          $stdout.puts "* ---> Spawning #{script.inspect}"
-          pid = Process.spawn(script, [:out, :err] => [logfile, 'w'])
-          started[pid] = Child.new(script, 0)
-        end
+        next unless File.executable?(script)
+
+        logfile = File.join(logs_dir, "#{File.basename(script)}.log")
+        $stdout.puts "* ---> Spawning #{script.inspect}"
+        pid = Process.spawn(script, [:out, :err] => [logfile, 'w'])
+        now = Time.now.utc
+        started[pid] = Child.new(script, 0, pid, now, now)
       end
 
       print_forever
@@ -46,23 +49,29 @@ module Chirp
         break if started.empty?
 
         started.clone.map do |pid, child|
-          if Process.waitpid(pid, Process::WNOHANG)
-            child = started.delete(pid)
-            child.exitstatus = $?.exitstatus
-            $stdout.puts "---> Done with #{child.script.inspect}, exit #{child.exitstatus}"
-            completed << child
-          end
+          next unless Process.waitpid(pid, Process::WNOHANG)
+
+          child = started.delete(pid)
+          child.completed_time = Time.now.utc
+          child.exit_status = $CHILD_STATUS.exitstatus
+
+          $stdout.puts "---> Done with #{child.script.inspect}, " \
+                       "exit #{child.exit_status}"
+
+          completed[pid] = child
         end
 
         sleep 0.2
       end
 
-      $stdout.puts "---> ALL DONE!"
-      completed.map(&:exitstatus).reduce(:+) || 0
+      summarize(completed)
+      completed.values.map(&:exit_status).reduce(:+) || 0
     end
 
     def scripts
-      @scripts ||= Dir.glob(File.expand_path("#{scripts_dir}/*")).select do |script|
+      @scripts ||= Dir.glob(
+        File.expand_path("#{scripts_dir}/*")
+      ).select do |script|
         script_filter =~ script
       end
     end
@@ -82,15 +91,28 @@ module Chirp
     end
 
     def internal_scripts_dir
-      @internal_scripts_dir ||= File.expand_path('../internal-scripts', __FILE__)
+      @internal_scripts_dir ||= File.expand_path(
+        '../internal-scripts', __FILE__
+      )
+    end
+
+    def summary_output_file
+      return @summary_output_file if @summary_output_file
+      @summary_output_file = File.expand_path(
+        ENV.fetch('CHIRP_SUMMARY_OUTPUT', 'chirp.json')
+      )
+      ENV['CHIRP_SUMMARY_OUTPUT'] = @summary_output_file
+      @summary_output_file
     end
 
     def logs_dir
-      @logs_dir ||= ENV.fetch('CHIRP_LOGS', File.expand_path('../../../log', __FILE__))
+      @logs_dir ||= ENV.fetch(
+        'CHIRP_LOGS', File.expand_path('../../../log', __FILE__)
+      )
     end
 
     def script_filter
-      @script_filter ||= %r{#{ENV['CHIRP_SCRIPT_FILTER'] || '.*'}}
+      @script_filter ||= /#{ENV['CHIRP_SCRIPT_FILTER'] || '.*'}/
     end
 
     def print_forever
@@ -103,6 +125,29 @@ module Chirp
           end
         end
       end
+    end
+
+    def summarize(completed)
+      $stdout.puts '---> ALL DONE!'
+      sum_recs = []
+      completed.each do |_, child|
+        sum_recs << {
+          script: child.basename,
+          exe_time: "#{child.completed_time - child.started_time}s",
+          exit: child.exit_status
+        }
+      end
+
+      sum_recs.each do |rec|
+        $stdout.puts "* ---> #{rec[:script]} #{rec[:exe_time]} " \
+                     "(exit #{rec[:exit]})"
+      end
+
+      File.open(summary_output_file, 'w') do |f|
+        f.puts JSON.pretty_generate(data: sum_recs)
+      end
+
+      $stdout.puts "* ---> Summary: #{summary_output_file}"
     end
   end
 end

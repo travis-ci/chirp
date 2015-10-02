@@ -1,0 +1,5 @@
+--color
+--format documentation
+--require support
+--require pry
+--order rand

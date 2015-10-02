@@ -1,14 +1,29 @@
 language: ruby
-rvm: 2.2.0
+
+rvm: 2.2.3
+
 sudo: false
+
 cache:
   apt: true
 addons:
   apt_packages:
   - bc
-script: bundle exec chirp
-after_success: ./bin/pushback &>/dev/null
-after_failure: ./bin/dumplogs ./log
+
+env:
+  matrix:
+  - INTEGRATION_SPECS=1
+  - NO_INTEGRATION_SPECS=1
+
+script:
+- bundle exec rubocop
+- bundle exec rspec spec
+- if [[ -n $INTEGRATION_SPECS ]] ; then bundle exec chirp ; fi
+
+after_success: bundle exec chirp pushback
+
+after_failure: bundle exec chirp dumplogs ./log
+
 notifications:
   webhooks:
     urls:
