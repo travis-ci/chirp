@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o xtrace
+
+[[ ${CHIRP_SENDSTATS_DISABLED} ]] && {
+  echo "Disabled!"
+  exit 0
+}
+
+[[ ${CHIRP_TRACKER_STATS_URL} ]] || {
+  echo "Missing \$CHIRP_TRACKER_STATS_URL"
+  exit 1
+}
+
+[[ -f ${CHIRP_SUMMARY_OUTPUT} ]] || {
+  echo "Missing \$CHIRP_SUMMARY_OUTPUT file"
+  exit 1
+}
+
+: ${CHIRP_CURL_EXE:=curl}
+
+${CHIRP_CURL_EXE} -sSL \
+  --data-binary @${CHIRP_SUMMARY_OUTPUT} \
+  -H 'Content-Type: application/json' \
+  ${CHIRP_TRACKER_STATS_URL}
