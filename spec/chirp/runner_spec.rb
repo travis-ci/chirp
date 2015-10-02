@@ -26,8 +26,12 @@ describe Chirp::Runner do
       $stderr = STDERR
     end
 
-    it 'does not explode' do
-      expect { subject.run! }.to_not raise_error StandardError
+    %w(cpu disk memory network).each do |script_name|
+      it "runs a #{script_name} script" do
+        subject.run!
+        expect($stdout.string).to match(/Spawning.*scripts\/#{script_name}"$/)
+        expect($stdout.string).to match(/---> #{script_name} [\d\.]+s \(exit 0\)$/)
+      end
     end
   end
 end
