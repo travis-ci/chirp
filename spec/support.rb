@@ -12,7 +12,7 @@ module Support
       server = TCPServer.new('localhost', INTEGRATION_SERVER_PORT)
       loop do
         socket = server.accept
-        request = socket.gets
+        _ = socket.gets
         response = "Ohai #{rand}\n"
         socket.print(
           [
