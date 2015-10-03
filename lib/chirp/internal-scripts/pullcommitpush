@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o xtrace
+
+[[ ${CHIRP_REPO_SLUG} ]] || {
+  echo "Missing \$CHIRP_REPO_SLUG"
+  exit 1
+}
+
+[[ ${GITHUB_OAUTH_TOKEN} ]] || {
+  echo "Missing \$GITHUB_OAUTH_TOKEN"
+  exit 1
+}
+
+: ${CHIRP_GIT_EXE:=git}
+: ${CHIRP_GIT_USERNAME:=Chirp Autopilot}
+: ${CHIRP_GIT_EMAIL:=contact+chirp@travis-ci.org}
+: ${CHIRP_GIT_BRANCH:=master}
+
+cd ${CHIRP_CLONE_DIR:-/tmp}
+
+CLONE_DEST="$(basename "${CHIRP_REPO_SLUG}")"
+rm -rvf "${CLONE_DEST}"
+
+${CHIRP_GIT_EXE} clone --depth=1 \
+  "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${CHIRP_REPO_SLUG}.git"
+
+cd "${CLONE_DEST}"
+
+set +o errexit
+
+[[ ${CHIRP_GIT_CONFIG} ]] && {
+  ${CHIRP_GIT_EXE} config --global user.name "${CHIRP_GIT_USERNAME}"
+  ${CHIRP_GIT_EXE} config --global user.email "${CHIRP_GIT_EMAIL}"
+}
+
+set -o errexit
+
+${CHIRP_GIT_EXE} commit --allow-empty -m "Bump dyno=${DYNO}"
+${CHIRP_GIT_EXE} push --quiet origin "${CHIRP_GIT_BRANCH}"
