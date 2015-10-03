@@ -21,8 +21,10 @@ module Chirp
 
     private
 
-    def perform_pushback
-      Process.exec(internal_script('pushback'))
+    %w(pushback sendstats pullcommitpush).each do |script_name|
+      define_method("perform_#{script_name}") do
+        Process.exec(internal_script(script_name))
+      end
     end
 
     def perform_dumplogs
