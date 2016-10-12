@@ -1,10 +1,7 @@
 language: ruby
-
-rvm:
-- 2.3.1
-
+rvm: 2.3.1
 sudo: false
-
+dist: trusty
 cache:
   apt: true
   directories:
@@ -13,38 +10,32 @@ addons:
   apt:
     packages:
     - bc
-
 env:
   matrix:
   - INTEGRATION_SPECS=1
-  - NO_INTEGRATION_SPECS=1
+  - INTEGRATION_SPECS=0
   global:
   - PATH="${HOME}/bin:${PATH}"
   - SHELLCHECK_URL="https://s3.amazonaws.com/travis-blue-public/binaries/ubuntu/14.04/x86_64/shellcheck-0.4.4.tar.bz2"
   - SHFMT_URL="https://github.com/mvdan/sh/releases/download/v0.1.0/shfmt_v0.1.0_linux_amd64"
-
 before_install:
 - mkdir -p "${HOME}/bin"
-- if ! shellcheck --version ; then
-    curl -sSL "${SHELLCHECK_URL}" | tar -C "${HOME}/bin" -xjf - ;
+- if ! shellcheck --version; then
+    curl -sSL "${SHELLCHECK_URL}" | tar -C "${HOME}/bin" -xjf -;
   fi
-- if ! command -v shfmt ; then
-    curl -sSL "${SHFMT_URL}" -o "${HOME}/bin/shfmt" ;
-    chmod +x "${HOME}/bin/shfmt" ;
+- if ! command -v shfmt; then
+    curl -sSL "${SHFMT_URL}" -o "${HOME}/bin/shfmt";
+    chmod +x "${HOME}/bin/shfmt";
   fi
-
 script:
 - ./runtests
 - git diff --exit-code
 - git diff --cached --exit-code
-- if [[ -n $INTEGRATION_SPECS ]] ; then bundle exec chirp ; fi
-
+- if [[ $INTEGRATION_SPECS = 1 ]]; then bundle exec chirp; fi
 after_success:
 - bundle exec chirp pushback
 - bundle exec chirp sendstats
-
 after_failure: bundle exec chirp dumplogs ./log
-
 notifications:
   webhooks:
     urls:
