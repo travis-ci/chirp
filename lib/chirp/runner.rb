@@ -27,6 +27,21 @@ module Chirp
       end
     end
 
+    def perform_help
+      $stdout.puts <<-EOF.gsub(/^\s+> ?/, '')
+        > Usage: #{File.basename($PROGRAM_NAME)} <command>
+        >
+        > Available commands:
+        >   - dumplogs
+        >   - pullcommitpush
+        >   - pushback
+        >   - scripts
+        >   - sendstats
+        >
+      EOF
+      0
+    end
+
     def perform_dumplogs
       Process.exec(internal_script('dumplogs'), logs_dir)
     end

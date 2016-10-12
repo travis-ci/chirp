@@ -1,25 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 
-: ${CHIRP_CPU_DIGITS:=1 10 100 1000}
-DIGITS=( ${CHIRP_CPU_DIGITS} )
+main() {
+  : "${CHIRP_CPU_DIGITS:=1 10 100 1000}"
+  DIGITS=(${CHIRP_CPU_DIGITS})
 
-_cpu_count() {
+  for digit in "${DIGITS[@]}"; do
+    for _ in $(seq 1 "$(__cpu_count)"); do
+      (
+        TMPSCRIPT="$(mktemp /tmp/chirp-cpu.XXXXXX)"
+        trap 'rm -f '"${TMPSCRIPT}" EXIT QUIT TERM
+        {
+          echo -n "scale=${digit}; ("
+          seq 1 2 100 \
+            | xargs -n1 -I{} echo "(16*(1/5)^{}/{}-4*(1/239)^{}/{}) + \\"
+          echo '0.0 )'
+        } >>"${TMPSCRIPT}"
+        bc -l "${TMPSCRIPT}"
+      ) &
+    done
+
+    wait
+  done
+}
+
+__cpu_count() {
   python -c 'import multiprocessing;print multiprocessing.cpu_count()'
 }
 
-for digit in ${DIGITS[@]} ; do
-  for cpu in $(seq 1 $(_cpu_count)) ; do
-    (
-      TMPSCRIPT="$(mktemp /tmp/chirp-cpu.XXXXXX)"
-      trap "rm -f ${TMPSCRIPT}" EXIT QUIT TERM
-      echo -n "scale=${digit}; (" >> "${TMPSCRIPT}"
-      seq 1 2 100 | xargs -n1 -I{} echo '(16*(1/5)^{}/{}-4*(1/239)^{}/{}) + \' >> "${TMPSCRIPT}"
-      echo '0.0 )' >> "${TMPSCRIPT}"
-      bc -l "${TMPSCRIPT}"
-    ) &
-  done
-
-  wait
-done
+main "$@"

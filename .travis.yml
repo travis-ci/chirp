@@ -16,10 +16,23 @@ env:
   matrix:
   - INTEGRATION_SPECS=1
   - NO_INTEGRATION_SPECS=1
+  global:
+  - SHELLCHECK_URL="https://s3.amazonaws.com/travis-blue-public/binaries/ubuntu/14.04/x86_64/shellcheck-0.4.4.tar.bz2"
+  - SHFMT_URL="https://github.com/mvdan/sh/releases/download/v0.1.0/shfmt_v0.1.0_linux_amd64"
+
+before_install:
+- if ! shellcheck --version ; then
+    curl -sSL "${SHELLCHECK_URL}" | tar -C "${HOME}/bin" -xjf - ;
+  fi
+- if ! command -v shfmt ; then
+    curl -sSL "${SHFMT_URL}" -o "${HOME}/bin/shfmt" ;
+    chmod +x "${HOME}/bin/shfmt" ;
+  fi
 
 script:
-- bundle exec rubocop
-- bundle exec rspec spec
+- ./runtests
+- git diff --exit-code
+- git diff --cached --exit-code
 - if [[ -n $INTEGRATION_SPECS ]] ; then bundle exec chirp ; fi
 
 after_success:
