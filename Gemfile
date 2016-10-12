@@ -6,5 +6,5 @@ gemspec
 
 gem 'pry'
 gem 'rspec'
-gem 'rubocop', '~> 0.41.0'
+gem 'rubocop', '~> 0.39.0'
 gem 'simplecov'
