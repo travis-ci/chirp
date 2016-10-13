@@ -28,6 +28,7 @@ main() {
     -H 'Content-Type: application/json' \
     -H "Travis-Queue: ${QUEUE:-unknown}" \
     -H "Travis-Dist: ${DIST:-unknown}" \
+    -H "Travis-Site: ${SITE:-unknown}" \
     "${CHIRP_TRACKER_STATS_URL}"
 }
 
