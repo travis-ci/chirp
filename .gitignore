@@ -10,3 +10,4 @@
 /log/
 /chirp.json
 .*env
+/.ruby-version

@@ -1,30 +1,39 @@
 #!/usr/bin/env bash
 
 set -o errexit
-set -o xtrace
 
-[[ ${CHIRP_PUSHBACK_DISABLED} ]] && {
-  echo "Disabled!"
-  exit 0
-}
+main() {
+  set -o xtrace
 
-[[ ${GITHUB_OAUTH_TOKEN} ]] || {
-  echo "Missing \$GITHUB_OAUTH_TOKEN"
-  exit 1
-}
+  [[ "${CHIRP_PUSHBACK_DISABLED}" ]] && {
+    echo "Disabled!"
+    exit 0
+  }
 
-[[ ${TRAVIS_REPO_SLUG} ]] || {
-  echo "Missing \$TRAVIS_REPO_SLUG"
-  exit 1
-}
+  [[ "${GITHUB_OAUTH_TOKEN}" ]] || {
+    echo "Missing \$GITHUB_OAUTH_TOKEN"
+    exit 1
+  }
 
-: ${CHIRP_GIT_EXE:=git}
+  [[ "${TRAVIS_REPO_SLUG}" ]] || {
+    echo "Missing \$TRAVIS_REPO_SLUG"
+    exit 1
+  }
 
-${CHIRP_GIT_EXE} checkout "${TRAVIS_BRANCH}"
-${CHIRP_GIT_EXE} pull --rebase origin "${TRAVIS_BRANCH}"
-[[ $TRAVIS ]] && ${CHIRP_GIT_EXE} config --global user.name 'Travis CI'
-[[ $TRAVIS ]] && ${CHIRP_GIT_EXE} config --global user.email 'contact+chirp@travis-ci.org'
-${CHIRP_GIT_EXE} commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT}
+  : "${CHIRP_GIT_EXE:=git}"
+
+  "${CHIRP_GIT_EXE}" checkout "${TRAVIS_BRANCH}"
+  "${CHIRP_GIT_EXE}" pull --rebase origin "${TRAVIS_BRANCH}"
+
+  [[ "${TRAVIS}" ]] && {
+    "${CHIRP_GIT_EXE}" config --global user.name 'Travis CI'
+  }
+
+  [[ "${TRAVIS}" ]] && {
+    "${CHIRP_GIT_EXE}" config --global user.email 'contact+chirp@travis-ci.org'
+  }
+
+  "${CHIRP_GIT_EXE}" commit --allow-empty -m "Bump self after commit ${TRAVIS_COMMIT}
 
 Travis-Build-ID: ${TRAVIS_BUILD_ID}
 Travis-Job-ID: ${TRAVIS_JOB_ID}
@@ -32,10 +41,12 @@ Travis-Commit: ${TRAVIS_COMMIT}
 Travis-Branch: ${TRAVIS_BRANCH}
 "
 
-(
-  set +x
-  ${CHIRP_GIT_EXE} remote set-url \
+  set +o xtrace
+  "${CHIRP_GIT_EXE}" remote set-url \
     origin "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${TRAVIS_REPO_SLUG}.git"
-)
+  set -o xtrace
 
-${CHIRP_GIT_EXE} push --quiet origin "${TRAVIS_BRANCH}"
+  "${CHIRP_GIT_EXE}" push --quiet origin "${TRAVIS_BRANCH}"
+}
+
+main "$@"

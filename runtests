@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+main() {
+  bundle exec rubocop
+  bundle exec rspec spec
+
+  echo 'Running shellcheck'
+  git grep -l '^#!/usr/bin/env bash' | xargs shellcheck
+
+  echo 'Running shfmt'
+  git grep -l '^#!/usr/bin/env bash' | xargs shfmt -i 2 -w
+}
+
+main "$@"

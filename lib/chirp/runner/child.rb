@@ -1,4 +1,5 @@
 # vim:fileencoding=utf-8
+# frozen_string_literal: true
 module Chirp
   class Runner
     Child = Struct.new(

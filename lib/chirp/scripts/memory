@@ -1,19 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 
-[[ $CHIRP_SCRIPTS ]] || exit 1
+main() {
+  [[ "${CHIRP_SCRIPTS}" ]] || exit 1
 
-: ${CHIRP_SCRATCH:=${TMPDIR:-/var/tmp}/chirp-memory}
-: ${CHIRP_MEMORY_GB_ALLOCATIONS:=0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0}
+  : "${CHIRP_SCRATCH:=${TMPDIR:-/var/tmp}/chirp-memory}"
+  : "${CHIRP_MEMORY_GB_ALLOCATIONS:=0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0}"
+  CHIRP_MEMORY_GB_ALLOCATIONS=(${CHIRP_MEMORY_GB_ALLOCATIONS})
 
-mkdir -p "${CHIRP_SCRATCH}"
-pushd "${CHIRP_SCRATCH}"
+  mkdir -p "${CHIRP_SCRATCH}"
+  pushd "${CHIRP_SCRATCH}"
 
-${CC:-gcc} -o gigs "${CHIRP_SCRIPTS}/gigs.c"
+  "${CC:-gcc}" -o gigs "${CHIRP_SCRIPTS}/gigs.c"
 
-for g in $CHIRP_MEMORY_GB_ALLOCATIONS ; do
-  ./gigs "${g}"
-done
+  for g in "${CHIRP_MEMORY_GB_ALLOCATIONS[@]}"; do
+    ./gigs "${g}"
+  done
 
-rm -f gigs
+  rm -f gigs
+}
+
+main "$@"

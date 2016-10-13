@@ -1,31 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 
-if [[ ! $CHIRP_NETWORK_URLS ]] ; then
-  CHIRP_NETWORK_URLS="
-    http://apt.postgresql.org/pub/repos/apt/dists/trusty-pgdg/9.4/binary-amd64/
-    http://archive.debian.org/debian/dists/lenny/main/binary-ia64/
-    http://dev.mysql.com/get/mysql-apt-config_0.3.2-1ubuntu14.10_all.deb
-    http://developer.android.com/tools/sdk/ndk/index.html
-    http://ppa.launchpad.net/chris-lea/redis-server/ubuntu/dists/trusty/main/binary-amd64/
-    http://us.archive.ubuntu.com/ubuntu/dists/precise/main/binary-amd64/
-    http://www.google.com
-    https://bitbucket.org/pypy/pypy/src/tip/pypy/test_all.py
-    https://fabricate.googlecode.com/git/fabricate.py
-    https://github.com/rails/rails/tree/master/Gemfile
-    https://pudding-production.herokuapp.com
-    https://registry.npmjs.org/express
-    https://s3.amazonaws.com/travis-build-examples/index.html
-    https://travis-ci.org/travis-infrastructure/chirp
-    https://www.npmjs.com/package/express
-  "
-fi
+main() {
+  if [[ ! "${CHIRP_NETWORK_URLS}" ]]; then
+    CHIRP_NETWORK_URLS="
+      http://apt.postgresql.org/pub/repos/apt/dists/trusty-pgdg/9.4/binary-amd64/
+      http://archive.debian.org/debian/dists/lenny/main/binary-ia64/
+      http://dev.mysql.com/get/mysql-apt-config_0.3.2-1ubuntu14.10_all.deb
+      http://developer.android.com/tools/sdk/ndk/index.html
+      http://ppa.launchpad.net/chris-lea/redis-server/ubuntu/dists/trusty/main/binary-amd64/
+      http://us.archive.ubuntu.com/ubuntu/dists/precise/main/binary-amd64/
+      http://www.google.com
+      https://bitbucket.org/pypy/pypy/src/tip/pypy/test_all.py
+      https://fabricate.googlecode.com/git/fabricate.py
+      https://github.com/rails/rails/tree/master/Gemfile
+      https://pudding-production.herokuapp.com
+      https://registry.npmjs.org/express
+      https://s3.amazonaws.com/travis-build-examples/index.html
+      https://travis-ci.org/travis-infrastructure/chirp
+      https://www.npmjs.com/package/express
+    "
+  fi
 
-URLS=( ${CHIRP_NETWORK_URLS} )
+  URLS=(${CHIRP_NETWORK_URLS})
 
-for url in ${URLS[@]} ; do
-  curl -fsSL "$url" &
-done
+  for url in "${URLS[@]}"; do
+    curl -fsSL "$url" &
+  done
 
-wait
+  wait
+}
+
+main "$@"

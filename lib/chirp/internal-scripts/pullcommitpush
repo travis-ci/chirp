@@ -1,62 +1,67 @@
 #!/usr/bin/env bash
 
 set -o errexit
-set -o xtrace
 
-[[ ${CHIRP_REPO_SLUG} ]] || {
-  echo "Missing \$CHIRP_REPO_SLUG"
-  exit 1
+main() {
+  set -o xtrace
+
+  [[ "${CHIRP_REPO_SLUG}" ]] || {
+    echo "Missing \$CHIRP_REPO_SLUG"
+    exit 1
+  }
+
+  [[ "${GITHUB_OAUTH_TOKEN}" ]] || {
+    echo "Missing \$GITHUB_OAUTH_TOKEN"
+    exit 1
+  }
+
+  [[ "${TRAVIS_TOKEN}" ]] || {
+    echo "Missing \$TRAVIS_TOKEN"
+    exit 1
+  }
+
+  : "${TRAVIS_API_ENDPOINT:=https://api.travis-ci.org}"
+  : "${CHIRP_GIT_EXE:=git}"
+  : "${CHIRP_GIT_USERNAME:=Chirp Autopilot}"
+  : "${CHIRP_GIT_EMAIL:=contact+chirp@travis-ci.org}"
+  : "${CHIRP_GIT_BRANCH:=master}"
+
+  cd "${CHIRP_CLONE_DIR:-/tmp}"
+
+  LATEST_BUILD_STATE="$(
+    curl \
+      -s \
+      -H 'Travis-API-Version: 3' \
+      -H "Authorization: token ${TRAVIS_TOKEN}" \
+      "${TRAVIS_API_ENDPOINT}/repo/${CHIRP_REPO_SLUG//\//%2F}/builds?limit=1" \
+      | ruby -rjson -e \
+        "puts(((JSON.parse(\$stdin.read)[\"builds\"]||[]).first||{})[\"state\"]||\"unknown\")"
+  )"
+
+  if [[ "${LATEST_BUILD_STATE}" =~ created|started ]]; then
+    echo "Latest build is ${LATEST_BUILD_STATE}.  Bye bye."
+    exit 0
+  fi
+
+  CLONE_DEST="$(basename "${CHIRP_REPO_SLUG}")"
+  rm -rvf "${CLONE_DEST}"
+
+  "${CHIRP_GIT_EXE}" clone --depth=1 \
+    "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${CHIRP_REPO_SLUG}.git"
+
+  cd "${CLONE_DEST}"
+
+  set +o errexit
+
+  [[ "${CHIRP_GIT_CONFIG}" ]] && {
+    "${CHIRP_GIT_EXE}" config --global user.name "${CHIRP_GIT_USERNAME}"
+    "${CHIRP_GIT_EXE}" config --global user.email "${CHIRP_GIT_EMAIL}"
+  }
+
+  set -o errexit
+
+  "${CHIRP_GIT_EXE}" commit --allow-empty -m "Bump dyno=${DYNO}"
+  "${CHIRP_GIT_EXE}" push --quiet origin "${CHIRP_GIT_BRANCH}"
 }
 
-[[ ${GITHUB_OAUTH_TOKEN} ]] || {
-  echo "Missing \$GITHUB_OAUTH_TOKEN"
-  exit 1
-}
-
-[[ ${TRAVIS_TOKEN} ]] || {
-  echo "Missing \$TRAVIS_TOKEN"
-  exit 1
-}
-
-: ${TRAVIS_API_ENDPOINT:=https://api.travis-ci.org}
-: ${CHIRP_GIT_EXE:=git}
-: ${CHIRP_GIT_USERNAME:=Chirp Autopilot}
-: ${CHIRP_GIT_EMAIL:=contact+chirp@travis-ci.org}
-: ${CHIRP_GIT_BRANCH:=master}
-
-cd ${CHIRP_CLONE_DIR:-/tmp}
-
-LATEST_BUILD_STATE=$(
-  curl \
-    -s \
-    -H 'Travis-API-Version: 3' \
-    -H "Authorization: token ${TRAVIS_TOKEN}" \
-    "${TRAVIS_API_ENDPOINT}/repo/${CHIRP_REPO_SLUG//\//%2F}/builds?limit=1" | \
-    ruby -rjson -e \
-      'puts(((JSON.parse($stdin.read)["builds"] || []).first || {})["state"] || "unknown")'
-)
-
-if [[ $LATEST_BUILD_STATE =~ created|started ]] ; then
-  echo "Latest build is $LATEST_BUILD_STATE.  Bye bye."
-  exit 0
-fi
-
-CLONE_DEST="$(basename "${CHIRP_REPO_SLUG}")"
-rm -rvf "${CLONE_DEST}"
-
-${CHIRP_GIT_EXE} clone --depth=1 \
-  "https://${GITHUB_OAUTH_TOKEN}:x-oauth-basic@github.com/${CHIRP_REPO_SLUG}.git"
-
-cd "${CLONE_DEST}"
-
-set +o errexit
-
-[[ ${CHIRP_GIT_CONFIG} ]] && {
-  ${CHIRP_GIT_EXE} config --global user.name "${CHIRP_GIT_USERNAME}"
-  ${CHIRP_GIT_EXE} config --global user.email "${CHIRP_GIT_EMAIL}"
-}
-
-set -o errexit
-
-${CHIRP_GIT_EXE} commit --allow-empty -m "Bump dyno=${DYNO}"
-${CHIRP_GIT_EXE} push --quiet origin "${CHIRP_GIT_BRANCH}"
+main "$@"

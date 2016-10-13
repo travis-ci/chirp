@@ -1,4 +1,5 @@
 # vim:fileencoding=utf-8
+# frozen_string_literal: true
 require 'English'
 require 'fileutils'
 require 'json'
@@ -25,6 +26,21 @@ module Chirp
       define_method("perform_#{script_name}") do
         Process.exec(internal_script(script_name))
       end
+    end
+
+    def perform_help
+      $stdout.puts <<-EOF.gsub(/^\s+> ?/, '')
+        > Usage: #{File.basename($PROGRAM_NAME)} <command>
+        >
+        > Available commands:
+        >   - dumplogs
+        >   - pullcommitpush
+        >   - pushback
+        >   - scripts
+        >   - sendstats
+        >
+      EOF
+      0
     end
 
     def perform_dumplogs
