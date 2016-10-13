@@ -8,6 +8,6 @@
 /spec/reports/
 /tmp/
 /log/
-/chirp.json
+/*.json
 .*env
 /.ruby-version

@@ -23,8 +23,11 @@ main() {
   : "${CHIRP_CURL_EXE:=curl}"
 
   "${CHIRP_CURL_EXE}" -sSL \
+    -X POST \
     --data-binary @"${CHIRP_SUMMARY_OUTPUT}" \
     -H 'Content-Type: application/json' \
+    -H "Travis-Queue: ${QUEUE:-unknown}" \
+    -H "Travis-Dist: ${DIST:-unknown}" \
     "${CHIRP_TRACKER_STATS_URL}"
 }
 
