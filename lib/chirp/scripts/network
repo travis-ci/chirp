@@ -3,6 +3,13 @@
 set -o errexit
 
 main() {
+  : "${TMPDIR:=/var/tmp}"
+
+  __parallel_download_test
+  ___down_up_test
+}
+
+__parallel_download_test() {
   if [[ ! "${CHIRP_NETWORK_URLS}" ]]; then
     CHIRP_NETWORK_URLS="
       http://apt.postgresql.org/pub/repos/apt/dists/trusty-pgdg/9.4/binary-amd64/
@@ -15,7 +22,7 @@ main() {
       https://bitbucket.org/pypy/pypy/src/tip/pypy/test_all.py
       https://fabricate.googlecode.com/git/fabricate.py
       https://github.com/rails/rails/tree/master/Gemfile
-      https://pudding-production.herokuapp.com
+      https://chirp-tracker-production.herokuapp.com/chirps
       https://registry.npmjs.org/express
       https://s3.amazonaws.com/travis-build-examples/index.html
       https://travis-ci.org/travis-infrastructure/chirp
@@ -26,10 +33,26 @@ main() {
   URLS=(${CHIRP_NETWORK_URLS})
 
   for url in "${URLS[@]}"; do
-    curl -fsSL "$url" &
+    curl -o /dev/null -fsSL "$url" &
   done
 
   wait
+}
+
+___down_up_test() {
+  [[ "${CHIRP_DOWN_UP_URL}" ]] || {
+     echo "Missing \$CHIRP_DOWN_UP_URL"
+     return
+  }
+
+  curl \
+    -o "${TMPDIR}/chirp-down-up-test" \
+    -sSL "${CHIRP_DOWN_UP_URL}"
+
+  curl \
+    -X POST \
+    --form "zzz=@${TMPDIR}/chirp-down-up-test" \
+    -sSL "${CHIRP_DOWN_UP_URL}"
 }
 
 main "$@"

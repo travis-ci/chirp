@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+main() {
+  # TODO
+  return
+}
+
+main "$@"
