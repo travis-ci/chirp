@@ -51,7 +51,7 @@ ___down_up_test() {
 
   curl \
     -X POST \
-    --form "zzz=@${TMPDIR}/chirp-down-up-test" \
+    --form "bytes=@${TMPDIR}/chirp-down-up-test" \
     -sSL "${CHIRP_DOWN_UP_URL}"
 }
 
