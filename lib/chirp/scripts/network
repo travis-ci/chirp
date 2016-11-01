@@ -6,7 +6,7 @@ main() {
   : "${TMPDIR:=/var/tmp}"
 
   __parallel_download_test
-  ___down_up_test
+  __down_up_test
 }
 
 __parallel_download_test() {
@@ -39,7 +39,7 @@ __parallel_download_test() {
   wait
 }
 
-___down_up_test() {
+__down_up_test() {
   [[ "${CHIRP_DOWN_UP_URL}" ]] || {
     echo "Missing \$CHIRP_DOWN_UP_URL"
     return
