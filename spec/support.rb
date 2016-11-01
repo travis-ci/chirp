@@ -39,6 +39,8 @@ ENV['CHIRP_DISK_WRITES'] = '10'
 ENV['CHIRP_MEMORY_GB_ALLOCATIONS'] = '0.1'
 ENV['CHIRP_NETWORK_URLS'] = \
   "http://localhost:#{Support::INTEGRATION_SERVER_PORT}/"
+ENV['CHIRP_CPU_ITER'] = '1'
+ENV['CHIRP_CPU_GREGORY_LEIBNIZ_FIGS'] = '100'
 
 RSpec.configure do |c|
   Support.start_integration_server if ENV['INTEGRATION_SPECS']
