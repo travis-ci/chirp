@@ -1,7 +1,7 @@
-# vim:fileencoding=utf-8
 # frozen_string_literal: true
+
 describe Chirp::Runner do
-  subject { described_class.new(%w(whatever)) }
+  subject { described_class.new(%w[whatever]) }
 
   it 'has a Child class' do
     expect(Chirp::Runner::Child).to_not be_nil
@@ -16,7 +16,7 @@ describe Chirp::Runner do
   end
 
   describe 'running scripts', integration: true do
-    subject { described_class.new(%w(scripts)) }
+    subject { described_class.new(%w[scripts]) }
 
     before do
       $stdout = StringIO.new
@@ -28,7 +28,7 @@ describe Chirp::Runner do
       $stderr = STDERR
     end
 
-    %w(cpu disk memory network).each do |script_name|
+    %w[cpu disk memory network].each do |script_name|
       it "runs a #{script_name} script" do
         subject.run!
         expect($stdout.string).to match(

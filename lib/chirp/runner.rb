@@ -1,5 +1,5 @@
-# vim:fileencoding=utf-8
 # frozen_string_literal: true
+
 require 'English'
 require 'fileutils'
 require 'json'
@@ -22,7 +22,7 @@ module Chirp
 
     private
 
-    %w(pushback sendstats pullcommitpush).each do |script_name|
+    %w[pushback sendstats pullcommitpush].each do |script_name|
       define_method("perform_#{script_name}") do
         Process.exec(internal_script(script_name))
       end
@@ -57,7 +57,7 @@ module Chirp
 
         logfile = File.join(logs_dir, "#{File.basename(script)}.log")
         $stdout.puts "* ---> Spawning #{script.inspect}"
-        pid = Process.spawn(script, [:out, :err] => [logfile, 'w'])
+        pid = Process.spawn(script, %i[out err] => [logfile, 'w'])
         now = Time.now.utc
         started[pid] = Child.new(script, 0, pid, now, now)
       end
@@ -67,7 +67,7 @@ module Chirp
       loop do
         break if started.empty?
 
-        started.clone.map do |pid, child|
+        started.clone.map do |pid, _child|
           next unless Process.waitpid(pid, Process::WNOHANG)
 
           child = started.delete(pid)
@@ -137,7 +137,7 @@ module Chirp
     def print_forever
       Thread.start do
         loop do
-          %w(◴ ◷ ◶ ◵).each do |chr|
+          %w[◴ ◷ ◶ ◵].each do |chr|
             $stderr.write "\r  "
             $stderr.write "\r#{chr} "
             sleep 0.1
