@@ -16,8 +16,8 @@ env:
   - INTEGRATION_SPECS=0
   global:
   - PATH="${HOME}/bin:${PATH}"
-  - SHELLCHECK_URL="https://s3.amazonaws.com/travis-blue-public/binaries/ubuntu/14.04/x86_64/shellcheck-0.4.4.tar.bz2"
-  - SHFMT_URL="https://github.com/mvdan/sh/releases/download/v0.1.0/shfmt_v0.1.0_linux_amd64"
+  - SHELLCHECK_URL="https://s3.amazonaws.com/travis-blue-public/binaries/ubuntu/14.04/x86_64/shellcheck-0.4.5.tar.bz2"
+  - SHFMT_URL="https://github.com/mvdan/sh/releases/download/v2.0.0/shfmt_v2.0.0_linux_amd64"
 before_install:
 - mkdir -p "${HOME}/bin"
 - if ! shellcheck --version; then
