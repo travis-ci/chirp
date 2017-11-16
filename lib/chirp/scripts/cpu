@@ -7,9 +7,9 @@ main() {
     echo "Iteration ${n}"
     for _ in $(seq 1 "$(__cpu_count)"); do
       (
-        seq -f '4/%g' 1 2 "${CHIRP_CPU_GREGORY_LEIBNIZ_FIGS:-1000000}" \
-          | paste -s -d"-+" - \
-          | bc -l
+        seq -f '4/%g' 1 2 "${CHIRP_CPU_GREGORY_LEIBNIZ_FIGS:-1000000}" |
+          paste -s -d"-+" - |
+          bc -l
       ) &
     done
 
@@ -18,7 +18,8 @@ main() {
 }
 
 __cpu_count() {
-  python -c 'import multiprocessing;print multiprocessing.cpu_count()'
+  nproc 2>/dev/null ||
+    python -c 'import multiprocessing;print multiprocessing.cpu_count()'
 }
 
 main "$@"
