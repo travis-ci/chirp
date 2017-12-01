@@ -27,4 +27,5 @@ metric for high level alerts.
 0. Add a webhook on github for chirp-tracker, e.g.
    `https://chirp-tracker-production.herokuapp.com/github` with content type of
    `application/x-www-form-urlencoded` and the secret token configured on the
-   server side.  Only the `push` event needs to be configured.
+   server side.  
+   Only the `push` event needs to be configured.
