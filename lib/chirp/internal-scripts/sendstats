@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-
 set -o errexit
 
 main() {
-  set -o xtrace
-
   [[ "${CHIRP_SENDSTATS_DISABLED}" ]] && {
     echo "Disabled!"
     exit 0
   }
 
-  [[ "${CHIRP_TRACKER_STATS_URL}" ]] || {
-    echo "Missing \$CHIRP_TRACKER_STATS_URL"
+  [[ "${HONEYCOMB_WRITEKEY}" ]] || {
+    echo "Missing \$HONEYCOMB_WRITEKEY"
+    exit 1
+  }
+
+  [[ "${HONEYCOMB_DATASET_URL}" ]] || {
+    echo "Missing \$HONEYCOMB_DATASET_URL"
     exit 1
   }
 
@@ -22,14 +24,12 @@ main() {
 
   : "${CHIRP_CURL_EXE:=curl}"
 
+  set +o xtrace
   "${CHIRP_CURL_EXE}" -sSL \
     -X POST \
     --data-binary @"${CHIRP_SUMMARY_OUTPUT}" \
-    -H 'Content-Type: application/json' \
-    -H "Travis-Queue: ${QUEUE:-unknown}" \
-    -H "Travis-Dist: ${DIST:-unknown}" \
-    -H "Travis-Site: ${SITE:-unknown}" \
-    "${CHIRP_TRACKER_STATS_URL}"
+    -H "X-Honeycomb-Team: ${HONEYCOMB_WRITEKEY}" \
+    "${HONEYCOMB_DATASET_URL}"
 }
 
-main "$@"
+main "${@}"
