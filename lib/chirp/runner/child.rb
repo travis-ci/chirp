@@ -8,6 +8,10 @@ module Chirp
       def basename
         @basename ||= File.basename(script)
       end
+
+      def duration_ms
+        (completed_time - started_time) * 1000.0
+      end
     end
   end
 end

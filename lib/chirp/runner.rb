@@ -3,6 +3,7 @@
 require 'English'
 require 'fileutils'
 require 'json'
+require 'time'
 
 module Chirp
   class Runner
@@ -29,16 +30,16 @@ module Chirp
     end
 
     def perform_help
-      $stdout.puts <<-EOF.gsub(/^\s+> ?/, '')
-        > Usage: #{File.basename($PROGRAM_NAME)} <command>
-        >
-        > Available commands:
-        >   - dumplogs
-        >   - pullcommitpush
-        >   - pushback
-        >   - scripts
-        >   - sendstats
-        >
+      $stdout.puts <<~EOF
+        Usage: #{File.basename($PROGRAM_NAME)} <command>
+
+        Available commands:
+          - dumplogs
+          - pullcommitpush
+          - pushback
+          - scripts
+          - sendstats
+
       EOF
       0
     end
@@ -99,7 +100,7 @@ module Chirp
       return @scripts_dir if @scripts_dir
       @scripts_dir = ENV.fetch(
         'CHIRP_SCRIPTS',
-        File.expand_path('../scripts', __FILE__)
+        File.expand_path('./scripts', __dir__)
       )
       ENV['CHIRP_SCRIPTS'] = @scripts_dir
       @scripts_dir
@@ -111,22 +112,24 @@ module Chirp
 
     def internal_scripts_dir
       @internal_scripts_dir ||= File.expand_path(
-        '../internal-scripts', __FILE__
+        './internal-scripts', __dir__
       )
     end
 
     def summary_output_file
       return @summary_output_file if @summary_output_file
-      @summary_output_file = File.expand_path(
-        ENV.fetch('CHIRP_SUMMARY_OUTPUT', 'chirp.json')
+      @summary_output_file = Pathname.new(
+        File.expand_path(
+          ENV.fetch('CHIRP_SUMMARY_OUTPUT', 'chirp.json')
+        )
       )
-      ENV['CHIRP_SUMMARY_OUTPUT'] = @summary_output_file
+      ENV['CHIRP_SUMMARY_OUTPUT'] = @summary_output_file.to_s
       @summary_output_file
     end
 
     def logs_dir
       @logs_dir ||= ENV.fetch(
-        'CHIRP_LOGS', File.expand_path('../../../log', __FILE__)
+        'CHIRP_LOGS', File.expand_path('../../log', __dir__)
       )
     end
 
@@ -148,23 +151,22 @@ module Chirp
 
     def summarize(completed)
       $stdout.puts '---> ALL DONE!'
-      sum_recs = []
-      completed.each do |_, child|
-        sum_recs << {
-          script: child.basename,
-          exe_time: "#{child.completed_time - child.started_time}s",
-          exit: child.exit_status
-        }
+      summary = {
+        timestamp: Time.now.utc.iso8601(5),
+        queue: ENV.fetch('QUEUE', 'unknown'),
+        dist: ENV.fetch('DIST', 'unknown'),
+        site: ENV.fetch('SITE', 'unknown')
+      }
+
+      completed.each_value do |child|
+        summary["#{child.basename}_duration_ms"] = child.duration_ms
+        summary["#{child.basename}_exit_code"] = child.exit_status
+
+        $stdout.puts "* ---> #{child.basename} #{child.duration_ms}ms " \
+          "(exit #{child.exit_status})"
       end
 
-      sum_recs.each do |rec|
-        $stdout.puts "* ---> #{rec[:script]} #{rec[:exe_time]} " \
-                     "(exit #{rec[:exit]})"
-      end
-
-      File.open(summary_output_file, 'w') do |f|
-        f.puts JSON.pretty_generate(data: sum_recs)
-      end
+      summary_output_file.write(JSON.pretty_generate(summary))
 
       $stdout.puts "* ---> Summary: #{summary_output_file}"
     end

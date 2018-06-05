@@ -1,5 +1,5 @@
 language: ruby
-rvm: 2.4.2
+rvm: 2.5.1
 sudo: false
 dist: trusty
 cache:
@@ -38,9 +38,3 @@ after_success:
 - bundle exec chirp pushback
 - bundle exec chirp sendstats
 after_failure: bundle exec chirp dumplogs ./log
-notifications:
-  webhooks:
-    urls:
-    - 'https://chirp-tracker-production.herokuapp.com/travis'
-    on_success: always
-    on_failure: never

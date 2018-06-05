@@ -35,7 +35,7 @@ describe Chirp::Runner do
           %r{Spawning.*scripts\/#{script_name}"$}
         )
         expect($stdout.string).to match(
-          /---> #{script_name} [\d\.]+s \(exit 0\)$/
+          /---> #{script_name} [\d\.]+ms \(exit 0\)$/
         )
       end
     end
