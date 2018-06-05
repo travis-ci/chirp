@@ -3,6 +3,7 @@
 require 'English'
 require 'fileutils'
 require 'json'
+require 'socket'
 require 'time'
 
 module Chirp
@@ -155,7 +156,8 @@ module Chirp
         timestamp: Time.now.utc.iso8601(5),
         queue: ENV.fetch('QUEUE', 'unknown'),
         dist: ENV.fetch('DIST', 'unknown'),
-        site: ENV.fetch('SITE', 'unknown')
+        site: ENV.fetch('SITE', 'unknown'),
+        infra: infra
       }
 
       completed.each_value do |child|
@@ -169,6 +171,17 @@ module Chirp
       summary_output_file.write(JSON.pretty_generate(summary))
 
       $stdout.puts "* ---> Summary: #{summary_output_file}"
+    end
+
+    private def infra
+      return ENV['INFRA'] if ENV.key?('INFRA')
+      case Socket.gethostname
+      when /\bec2\b/ then 'ec2'
+      when /\bgce\b/ then 'gce'
+      when /\bpacket\b/ then 'packet'
+      when /\b(wjb|mac)\b/i then 'macstadium'
+      else 'unknown'
+      end
     end
   end
 end
