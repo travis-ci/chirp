@@ -3,7 +3,8 @@
 require 'English'
 require 'fileutils'
 require 'json'
-require 'socket'
+require 'net/http'
+require 'openssl'
 require 'time'
 
 module Chirp
@@ -175,13 +176,18 @@ module Chirp
 
     private def infra
       return ENV['INFRA'] if ENV.key?('INFRA')
-      case Socket.gethostname
-      when /\bec2\b/ then 'ec2'
-      when /\bgce\b/ then 'gce'
-      when /\bpacket\b/ then 'packet'
-      when /\b(wjb|mac)\b/i then 'macstadium'
-      else 'unknown'
-      end
+      infra_whereami
+    end
+
+    private def infra_whereami(host: 'whereami-production-0.herokuapp.com')
+      http = Net::HTTP.new(host, 443)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+      request = Net::HTTP::Get.new('/')
+      request['Accept'] = 'application/json'
+      response = http.request(request)
+      JSON.parse(response.body).fetch('infra')
     end
   end
 end
