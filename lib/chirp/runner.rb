@@ -3,6 +3,8 @@
 require 'English'
 require 'fileutils'
 require 'json'
+require 'net/http'
+require 'openssl'
 require 'time'
 
 module Chirp
@@ -49,6 +51,7 @@ module Chirp
     end
 
     def perform_scripts
+      started_at = Time.now.utc
       started = {}
       completed = {}
       FileUtils.mkdir_p(logs_dir)
@@ -84,7 +87,7 @@ module Chirp
         sleep 0.2
       end
 
-      summarize(completed)
+      summarize(completed, started_at)
       completed.values.map(&:exit_status).reduce(:+) || 0
     end
 
@@ -149,13 +152,15 @@ module Chirp
       end
     end
 
-    def summarize(completed)
+    def summarize(completed, started_at)
       $stdout.puts '---> ALL DONE!'
       summary = {
-        timestamp: Time.now.utc.iso8601(5),
-        queue: ENV.fetch('QUEUE', 'unknown'),
         dist: ENV.fetch('DIST', 'unknown'),
-        site: ENV.fetch('SITE', 'unknown')
+        infra: infra,
+        queue: ENV.fetch('QUEUE', 'unknown'),
+        site: ENV.fetch('SITE', 'unknown'),
+        timestamp: Time.now.utc.iso8601(5),
+        total_duration_ms: (Time.now.utc - started_at) * 1_000
       }
 
       completed.each_value do |child|
@@ -169,6 +174,22 @@ module Chirp
       summary_output_file.write(JSON.pretty_generate(summary))
 
       $stdout.puts "* ---> Summary: #{summary_output_file}"
+    end
+
+    private def infra
+      return ENV['INFRA'] if ENV.key?('INFRA')
+      infra_whereami
+    end
+
+    private def infra_whereami(host: 'whereami-production-0.herokuapp.com')
+      http = Net::HTTP.new(host, 443)
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+      request = Net::HTTP::Get.new('/')
+      request['Accept'] = 'application/json'
+      response = http.request(request)
+      JSON.parse(response.body).fetch('infra')
     end
   end
 end
