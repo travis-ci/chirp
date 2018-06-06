@@ -8,3 +8,9 @@ Style/Documentation:
 
 Metrics/ClassLength:
   Max: 200
+
+Metrics/MethodLength:
+  Max: 50
+
+Metrics/AbcSize:
+  Max: 50

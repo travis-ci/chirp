@@ -51,6 +51,7 @@ module Chirp
     end
 
     def perform_scripts
+      started_at = Time.now.utc
       started = {}
       completed = {}
       FileUtils.mkdir_p(logs_dir)
@@ -86,7 +87,7 @@ module Chirp
         sleep 0.2
       end
 
-      summarize(completed)
+      summarize(completed, started_at)
       completed.values.map(&:exit_status).reduce(:+) || 0
     end
 
@@ -151,14 +152,15 @@ module Chirp
       end
     end
 
-    def summarize(completed)
+    def summarize(completed, started_at)
       $stdout.puts '---> ALL DONE!'
       summary = {
-        timestamp: Time.now.utc.iso8601(5),
-        queue: ENV.fetch('QUEUE', 'unknown'),
         dist: ENV.fetch('DIST', 'unknown'),
+        infra: infra,
+        queue: ENV.fetch('QUEUE', 'unknown'),
         site: ENV.fetch('SITE', 'unknown'),
-        infra: infra
+        timestamp: Time.now.utc.iso8601(5),
+        total_duration_ms: (Time.now.utc - started_at) * 1_000
       }
 
       completed.each_value do |child|
