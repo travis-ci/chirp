@@ -6,6 +6,9 @@ AllCops:
 Style/Documentation:
   Enabled: false
 
+Style/AccessModifierDeclarations:
+  Enabled: false
+
 Metrics/ClassLength:
   Max: 200
 
