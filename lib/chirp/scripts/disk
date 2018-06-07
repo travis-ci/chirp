@@ -13,7 +13,9 @@ main() {
 
   for n in $(seq 0 "${CHIRP_DISK_WRITES}"); do
     dd if=/dev/zero of="./.write-test-${n}" count=1024 bs=256
+    sync
     rm -vf "./.write-test-${n}"
+    sync
   done
 }
 
