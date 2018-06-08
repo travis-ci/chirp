@@ -15,12 +15,12 @@ main() {
   local i=0
   while [[ "${i}" -lt "${CHIRP_DISK_WRITES}" ]]; do
     dd if=/dev/zero \
-      of="./.write-test-${n}" \
+      of="./.write-test-${i}" \
       bs=1024 \
       count="${CHIRP_DISK_WRITE_SIZE_KB}"
     sync
 
-    rm -vf "./.write-test-${n}"
+    rm -vf "./.write-test-${i}"
     sync
 
     i=$((i + 1))
