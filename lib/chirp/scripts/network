@@ -4,8 +4,15 @@ set -o errexit
 
 main() {
   : "${TMPDIR:=/var/tmp}"
+  : "${CHIRP_SCRATCH:=${TMPDIR}/chirp-network}"
 
+  __setup
   __parallel_download_test
+  __s3_updown_test
+}
+
+__setup() {
+  gem install aws-sdk-s3
 }
 
 __parallel_download_test() {
@@ -35,6 +42,43 @@ __parallel_download_test() {
   done
 
   wait
+}
+
+__s3_updown_test() {
+  : "${AWS_REGION:=us-east-1}"
+  : "${CHIRP_NETWORK_S3_BUCKET:=travis-ci-chirp-artifacts}"
+
+  local s3key="${DIST:-unknown}/${QUEUE:-unknown}/${SITE:-unknown}"
+  s3key="${s3key}/test.$(date +%s).txt"
+  local bn="$(basename "${s3key}")"
+
+  pushd "${CHIRP_SCRATCH}"
+  dd if=/dev/zero of="./${bn}" bs=1M count=100
+  sync
+
+  ruby -r aws-sdk-s3 <<EORUBY
+Aws::S3::Resource.new(region: "${AWS_REGION}")
+  .bucket("${CHIRP_NETWORK_S3_BUCKET}")
+  .object("${s3key}")
+  .upload_file("${bn}")
+
+Aws::S3::Client.new(region: "${AWS_REGION}")
+  .put_object_acl(
+    bucket: "${CHIRP_NETWORK_S3_BUCKET}",
+    acl: 'public-read',
+    key: "${s3key}"
+  )
+EORUBY
+
+  curl -o "./${bn}.down" -sSL \
+    "https://s3.amazonaws.com/${CHIRP_NETWORK_S3_BUCKET}/${s3key}"
+
+  ruby -r aws-sdk-s3 <<EORUBY
+Aws::S3::Resource.new(region: "${AWS_REGION}")
+  .bucket("${CHIRP_NETWORK_S3_BUCKET}")
+  .object("${s3key}")
+  .delete
+EORUBY
 }
 
 main "${@}"
