@@ -32,17 +32,24 @@ module Support
   end
 
   module_function :start_integration_server
+
+  def integration?
+    ENV['INTEGRATION_SPECS'] == '1'
+  end
+
+  module_function :integration?
 end
 
 ENV['CHIRP_CPU_DIGITS'] = '1'
+ENV['CHIRP_CPU_GREGORY_LEIBNIZ_FIGS'] = '100'
+ENV['CHIRP_CPU_ITER'] = '1'
 ENV['CHIRP_DISK_WRITES'] = '10'
 ENV['CHIRP_MEMORY_GB_ALLOCATIONS'] = '0.1'
 ENV['CHIRP_NETWORK_URLS'] = \
   "http://localhost:#{Support::INTEGRATION_SERVER_PORT}/"
-ENV['CHIRP_CPU_ITER'] = '1'
-ENV['CHIRP_CPU_GREGORY_LEIBNIZ_FIGS'] = '100'
+ENV['CHIRP_S3_REPEATS'] = '2'
 
 RSpec.configure do |c|
-  Support.start_integration_server if ENV['INTEGRATION_SPECS']
-  c.filter_run_excluding(integration: true) unless ENV['INTEGRATION_SPECS']
+  Support.start_integration_server if Support.integration?
+  c.filter_run_excluding(integration: true) unless Support.integration?
 end

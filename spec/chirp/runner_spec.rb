@@ -11,7 +11,7 @@ describe Chirp::Runner do
     expect(subject.action).to eql 'whatever'
   end
 
-  it 'runs perform_#{action}' do
+  it 'runs perform_{action}' do
     expect { subject.run! }.to raise_error NoMethodError
   end
 
@@ -28,7 +28,7 @@ describe Chirp::Runner do
       $stderr = STDERR
     end
 
-    %w[cpu disk memory network].each do |script_name|
+    %w[cpu disk memory network s3].each do |script_name|
       it "runs a #{script_name} script" do
         subject.run!
         expect($stdout.string).to match(

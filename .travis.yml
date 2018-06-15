@@ -33,7 +33,10 @@ script:
 - ./runtests
 - git diff --exit-code
 - git diff --cached --exit-code
-- if [[ $INTEGRATION_SPECS = 1 ]]; then bundle exec chirp; fi
+- if [[ $INTEGRATION_SPECS = 1 ]]; then
+    source .example.env;
+    bundle exec chirp;
+  fi
 after_success:
 - bundle exec chirp pushback
 - bundle exec chirp sendstats
