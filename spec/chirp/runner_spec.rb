@@ -11,7 +11,7 @@ describe Chirp::Runner do
     expect(subject.action).to eql 'whatever'
   end
 
-  it 'runs perform_#{action}' do
+  it 'runs perform_{action}' do
     expect { subject.run! }.to raise_error NoMethodError
   end
 

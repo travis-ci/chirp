@@ -32,7 +32,7 @@ module Chirp
     end
 
     def perform_help
-      $stdout.puts <<~EOF
+      $stdout.puts <<~USAGE
         Usage: #{File.basename($PROGRAM_NAME)} <command>
 
         Available commands:
@@ -42,7 +42,7 @@ module Chirp
           - scripts
           - sendstats
 
-      EOF
+      USAGE
       0
     end
 

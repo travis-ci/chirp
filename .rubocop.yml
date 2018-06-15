@@ -9,6 +9,10 @@ Style/Documentation:
 Style/AccessModifierDeclarations:
   Enabled: false
 
+Metrics/BlockLength:
+  Exclude:
+  - 'spec/**/*.rb'
+
 Metrics/ClassLength:
   Max: 200
 
