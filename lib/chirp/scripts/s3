@@ -1,0 +1,99 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'digest/sha2'
+require 'fileutils'
+require 'tmpdir'
+
+require 'aws-sdk-s3'
+require 'faraday'
+require 'faraday_middleware'
+
+def main
+  ENV['AWS_REGION'] ||= 'us-east-1'
+  ENV['CHIRP_S3_BUCKET'] ||= 'travis-ci-chirp-artifacts'
+  ENV['CHIRP_S3_REPEATS'] ||= '20'
+  ENV['CHIRP_S3_SIZE_MB'] ||= '25'
+  ENV['CHIRP_SCRATCH'] ||= File.join(Dir.tmpdir, 'chirp-network')
+
+  s3_repeats = Integer(ENV['CHIRP_S3_REPEATS'])
+  s3_size_mb = Integer(ENV['CHIRP_S3_SIZE_MB'])
+
+  FileUtils.mkdir_p(ENV['CHIRP_SCRATCH'])
+
+  s3_repeats.times do |_n|
+    s3_updown(
+      bucket: ENV['CHIRP_S3_BUCKET'],
+      region: ENV['AWS_REGION'],
+      dist: ENV.fetch('DIST', 'unknown'),
+      queue: ENV.fetch('QUEUE', 'unknown'),
+      site: ENV.fetch('SITE', 'unknown'),
+      scratch_dir: ENV['CHIRP_SCRATCH'],
+      size_mb: s3_size_mb
+    )
+  end
+
+  0
+end
+
+def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
+              queue: 'unknown', site: 'unknown', scratch_dir: '.',
+              size_mb: 25)
+  basename = "test.#{Time.now.utc.to_i}.txt"
+  s3key = File.join(dist, queue, site, basename)
+  local_file = File.join(scratch_dir, basename)
+
+  system(
+    "dd if=/dev/zero of=#{local_file} bs=1M count=#{size_mb}",
+    %i[out err] => '/dev/null'
+  )
+  system(
+    "echo #{SecureRandom.hex(16)} >>#{local_file}",
+    %i[out err] => '/dev/null'
+  )
+  system('sync')
+
+  sha2 = Digest::SHA2.new(256)
+  File.open(local_file) do |f|
+    loop do
+      break if f.eof?
+      sha2 << f.read(1024)
+    end
+  end
+
+  sha256sum = sha2.hexdigest
+
+  warn "    uploading #{local_file} -> #{bucket}/#{s3key}"
+  warn "      sha256sum=#{sha256sum}"
+  Aws::S3::Resource.new(region: region)
+                   .bucket(bucket)
+                   .object(s3key)
+                   .upload_file(local_file)
+
+  Aws::S3::Client.new(region: region)
+                 .put_object_acl(
+                   bucket: bucket,
+                   acl: 'public-read',
+                   key: s3key
+                 )
+
+  dl_url = "https://s3.amazonaws.com/#{bucket}/#{s3key}"
+  warn "    downloading #{dl_url}"
+  dl_resp = Faraday.get("https://s3.amazonaws.com/#{bucket}/#{s3key}")
+
+  if dl_resp.success?
+    sha2.reset
+    sha2 << dl_resp.body
+    warn "      sha256sum=#{sha2.hexdigest}"
+  end
+
+  Aws::S3::Resource.new(region: region)
+                   .bucket(bucket)
+                   .object(s3key)
+                   .delete
+
+  raise 'failed to re-download test file' unless dl_resp.success?
+  raise 'download does not match upload' unless sha256sum == sha2.hexdigest
+end
+
+exit(main) if $PROGRAM_NAME == __FILE__
