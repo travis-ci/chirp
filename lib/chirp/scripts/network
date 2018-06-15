@@ -37,6 +37,12 @@ end
 def parallel_download(urls: [])
   downloads = {}
 
+  conn = Faraday.new do |builder|
+    builder.response :follow_redirects
+    builder.response :raise_error
+    builder.adapter :net_http
+  end
+
   urls.each do |url|
     downloads[url] = {
       thr: nil,
@@ -45,12 +51,6 @@ def parallel_download(urls: [])
     }
 
     downloads[url][:thr] = Thread.new do
-      conn = Faraday.new do |builder|
-        builder.response :follow_redirects
-        builder.response :raise_error
-        builder.adapter :net_http
-      end
-
       downloads[url][:resp] = conn.get(url)
     end
   end

@@ -21,7 +21,7 @@ def main
 
   FileUtils.mkdir_p(ENV['CHIRP_SCRATCH'])
 
-  s3_repeats.times do |_n|
+  s3_repeats.times do
     s3_updown(
       bucket: ENV['CHIRP_S3_BUCKET'],
       region: ENV['AWS_REGION'],
@@ -43,15 +43,7 @@ def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
   s3key = File.join(dist, queue, site, basename)
   local_file = File.join(scratch_dir, basename)
 
-  system(
-    "dd if=/dev/zero of=#{local_file} bs=1M count=#{size_mb}",
-    %i[out err] => '/dev/null'
-  )
-  system(
-    "echo #{SecureRandom.hex(16)} >>#{local_file}",
-    %i[out err] => '/dev/null'
-  )
-  system('sync')
+  generate_local_file(local_file: local_file, size_mb: size_mb)
 
   sha2 = Digest::SHA2.new(256)
   File.open(local_file) do |f|
@@ -79,7 +71,15 @@ def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
 
   dl_url = "https://s3.amazonaws.com/#{bucket}/#{s3key}"
   warn "    downloading #{dl_url}"
-  dl_resp = Faraday.get("https://s3.amazonaws.com/#{bucket}/#{s3key}")
+
+  conn = Faraday.new do |builder|
+    builder.request :retry, max: 2, interval: 5, interval_randomness: 0.5,
+                            backoff_factor: 2
+    builder.response :follow_redirects
+    builder.adapter :net_http
+  end
+
+  dl_resp = conn.get("https://s3.amazonaws.com/#{bucket}/#{s3key}")
 
   if dl_resp.success?
     sha2.reset
@@ -92,8 +92,27 @@ def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
                    .object(s3key)
                    .delete
 
-  raise 'failed to re-download test file' unless dl_resp.success?
-  raise 'download does not match upload' unless sha256sum == sha2.hexdigest
+  unless dl_resp.success?
+    warn "re-download status=#{dl_resp.status} headers=#{dl_resp.headers}"
+    raise 'failed to re-download test file'
+  end
+
+  return if sha256sum == sha2.hexdigest
+
+  warn "upload #{sha256sum} != download #{sha2.hexdigest}"
+  raise 'download does not match upload'
+end
+
+def generate_local_file(local_file: '', size_mb: 10)
+  system(
+    "dd if=/dev/zero of=#{local_file} bs=1M count=#{size_mb}",
+    %i[out err] => '/dev/null'
+  )
+  system(
+    "echo #{SecureRandom.hex(16)} >>#{local_file}",
+    %i[out err] => '/dev/null'
+  )
+  system('sync')
 end
 
 exit(main) if $PROGRAM_NAME == __FILE__
