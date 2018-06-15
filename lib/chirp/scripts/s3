@@ -104,15 +104,13 @@ def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
 end
 
 def generate_local_file(local_file: '', size_mb: 10)
-  system(
-    "dd if=/dev/zero of=#{local_file} bs=1M count=#{size_mb}",
-    %i[out err] => '/dev/null'
-  )
-  system(
-    "echo #{SecureRandom.hex(16)} >>#{local_file}",
-    %i[out err] => '/dev/null'
-  )
-  system('sync')
+  File.open('/dev/zero') do |zero|
+    File.open(local_file, 'w') do |out|
+      out.sync = true
+      size_mb.times { out.write(zero.read(1_000_000)) }
+      out.write(SecureRandom.hex(16))
+    end
+  end
 end
 
 exit(main) if $PROGRAM_NAME == __FILE__
