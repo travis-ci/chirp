@@ -155,7 +155,7 @@ module Chirp
     def summarize(completed, started_at)
       $stdout.puts '---> ALL DONE!'
       summary = {
-        dist: ENV.fetch('DIST', 'unknown'),
+        dist: ENV.fetch('DIST', ENV.fetch('IMAGE', 'unknown')),
         infra: infra,
         queue: ENV.fetch('QUEUE', 'unknown'),
         site: ENV.fetch('SITE', 'unknown'),
