@@ -25,7 +25,7 @@ def main
     s3_updown(
       bucket: ENV['CHIRP_S3_BUCKET'],
       region: ENV['AWS_REGION'],
-      dist: ENV.fetch('DIST', 'unknown'),
+      dist: ENV.fetch('DIST', ENV.fetch('IMAGE', 'unknown')),
       queue: ENV.fetch('QUEUE', 'unknown'),
       site: ENV.fetch('SITE', 'unknown'),
       scratch_dir: ENV['CHIRP_SCRATCH'],
