@@ -39,7 +39,7 @@ end
 def s3_updown(bucket: '', region: 'us-east-1', dist: 'unknown',
               queue: 'unknown', site: 'unknown', scratch_dir: '.',
               size_mb: 25)
-  basename = "test.#{Time.now.utc.to_i}.txt"
+  basename = "test.#{Time.now.utc.to_f}.txt"
   s3key = File.join(dist, queue, site, basename)
   local_file = File.join(scratch_dir, basename)
 
