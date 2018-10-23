@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 
 if [[ -f /.dockerenv ]]; then
-  echo Running in a container, exiting>/dev/stderr
+  echo "Running in a container. Exiting." >/dev/stderr
   exit 0
 fi
 
 if ! [[ "$OSTYPE" =~ linux ]]; then
-  echo Unsupported OS, exiting>/dev/stderr
+  echo "Unsupported OS. Exiting." >/dev/stderr
   exit 0
 fi
 
 if ! [[ "$(sudo readlink -- /proc/1/exe)" =~ systemd ]]; then
-  echo Systemd is not governing the system. Exiting>/dev/stderr
+  echo "Systemd is not governing the system. Exiting." >/dev/stderr
   exit 0
 fi
 
 if ! command systemd-analyze >/dev/null 2>&1; then
-  echo "'systemd-analyze' is not available. Exiting">/dev/stderr
+  echo "'systemd-analyze' is not available. Exiting." >/dev/stderr
   exit 0
 fi
 
 if ! [[ -f gs-travis-chirp.json ]]; then
-  echo No credentials to upload to bucket.>/dev/stderr
+  echo "No credentials to upload to bucket. Exiting." >/dev/stderr
   exit 0
 fi
 
