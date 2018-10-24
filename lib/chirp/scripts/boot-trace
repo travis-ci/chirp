@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 if [[ -f /.dockerenv ]]; then
   echo "Running in a container. Exiting." >/dev/stderr
@@ -25,7 +26,7 @@ if ! [[ -f gs-travis-chirp.json ]]; then
   exit 0
 fi
 
-outname="systemd-analyze-$(date +%F_%H:%M:%S)-$TRAVIS_APP_HOST-$TRAVIS_JOB_ID.svg"
+outname="plot-${TRAVIS_REPO_SLUG#*/}-$TRAVIS_JOB_ID.svg"
 systemd-analyze plot>"$outname"
 
 gsutil cp "$outname" gs://travis-chirp
